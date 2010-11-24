@@ -1,0 +1,109 @@
+Helps make your forms snazzy by allowing you to easily dynamically
+add new blocks of nested data in a one-to-many relationship. In a
+tradional non-dynamic form you might have something like:
+
+    # models
+    class Album < ActiveRecord::Base
+      has_many :tracks
+      accepts_nested_attributes_for :tracks, :reject_if => :all_blank
+    end
+    class Track < ActiveRecord::Base
+    end
+
+    # controller
+    @album = Album.new
+    @album.tracks.build until @album.tracks.size >= 15
+
+    # view
+    <%= form_for @album do |a| %>
+      <%= a.label :name %><br />
+      <%= a.text_field :name %><br /><br />
+
+      <h2>Tracks</h2>
+      <%= a.fields_for :tracks do |t| %>
+        <%= t.text_field :name %><br />
+      <% end %>
+    <% end %>
+
+The above works great. The user can enter an album with up to 15 tracks.
+That should cover most everybody. But what about those really long
+compilation albums? We need to be able to add more nested objects to the
+form dynamically instead of having a predefined max count. Ideally our
+solution should:
+
+* Make the view hardly any more complicated than the above code. The
+  simplicity of how nested models in Rails works great. Lets keep it
+  simple.
+* Works without any server communication. Partly to keep things simple
+  but partly also because we don't to wait for the server just to get
+  a new form partial.
+* Handle complex forms. The above nested object is just a single field.
+  We want to ensure the nested object can have many diverse fields
+  as well.
+
+This plugin accomplishes that. To implement all you need to do is:
+
+1. Change your "fields_for" call to be "dynamic_fields_for".
+2. Stop populating blank items in the controller. That should really
+   be at the view anyway. dynamic_fields_for takes a :minimum option
+   which is the minimum number of nested objects. If the data model
+   doesn't naturally have :minimum dynamic_fields_for will add them.
+   The system defaults to assuming you want at least one nested object.
+3. Use activate_new_nested_form to provide a trigger that will
+   dynamically add a new nested object if the user clicks on it.
+
+So the above code should now be:
+
+    # models
+    class Album < ActiveRecord::Base
+      has_many :tracks
+      accepts_nested_attributes_for :tracks, :reject_if => :all_blank
+    end
+    class Track < ActiveRecord::Base
+    end
+
+    # controller
+    @album = Album.new
+
+    # view
+    <%= form_for @album do |a| %>
+      <%= a.label :name %><br />
+      <%= a.text_field :name %><br /><br />
+
+      <h2>Tracks</h2>
+      <%= a.dynamic_fields_for :tracks do |t| %>
+        <%= t.text_field :name %><br />
+      <% end %>
+      <%= a.new_nested_form_marker :tracks %>
+      <%= a.activate_new_nested_form :tracks %>
+    <% end %>
+
+
+= HTML LIMITATIONS
+
+Normally fields_for can have just about any content you want. But
+dynamic_fields_for is more restrictive because you it adds some
+containers to your HTML to allow it to hide the template, insert
+the markers, etc. This means you should keep in mind that whenever
+you put in dynamic_fields_for will be surrounded by a div tag.
+Also where you put the marker will also be a div tag. The common
+setup of using "li" or "tr" tags in your "fields_for" content will
+not work for this reason. If anybody has a good solution to this
+I would be interested to get rid of this restriction. The ideal
+solution should:
+
+  * Use un-obtrusive JavaScript. Rails 3 has made good progress
+    on this front and I don't want to backtrack.
+  * HTML should remain valid. This means we need to basically mark
+    the "tr" and "li" tag as part of the template without using a
+    container. I thought about using something like Nokogiri to parse
+    and adjust but not sure how well that would work out.
+  * A good solution would ideally even been able to handle the case
+    where the content of dynamic_fields_for is multiple "tr" rows.
+  * Once support is added for we still need the solution to handle less
+    structured forms. For example:
+
+        <%= a.dynamic_fields_for :tracks |t| %>
+          <%= t.label :name %><br />
+          <%= t.text_field :name %>
+        <% end %>
