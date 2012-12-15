@@ -10,7 +10,7 @@ module AddAnother::FormBuilder
     @object.send(name).build until @object.send(name).size >= minimum
 
     klass = @object.class.reflect_on_association(name).klass
-    template = fields_for_nested_model("#{@object_name}[#{name}_attributes][__template__]", klass.new, args, blk)
+    template = fields_for_nested_model("#{@object_name}[#{name}_attributes][__template__]", klass.new, options, blk)
     template = @template.content_tag 'div', template,
       :id => "#{dynamic_name name}_template", :class => 'dynamic_template'
 

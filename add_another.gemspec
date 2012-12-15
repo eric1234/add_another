@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'add_another'
-  s.version = '0.0.1'
-  s.homepage = 'http://wiki.github.com/eric1234/add_another/'
+  s.version = '0.0.2'
+  s.homepage = 'http://github.com/eric1234/add_another/'
   s.author = 'Eric Anderson'
   s.email = 'eric@pixelwareinc.com'
   s.add_dependency 'rails', '>= 3'
