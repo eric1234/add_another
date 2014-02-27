@@ -32,18 +32,11 @@ module AddAnother::FormBuilder
 
   # Will leave a marker that will allow the javascript to know where
   # to insert the new nested form.
-  #
-  #   options[:next_index]::
-  #     If each new dynamic nested object has some sort of index then
-  #     pass the next number as options[:next_index]. This number will
-  #     be used for the first dynamic insert. Each one added after that
-  #     will increment the number by one.
   def new_nested_form_marker(name, opts={})
     options = {
       :class => 'dynamic_marker',
       :id    => "#{dynamic_name name}_marker"
     }
-    options[:class] += " index-#{opts[:next_index]}" if opts.has_key? :next_index
     @template.content_tag 'div', '', options
   end
 
